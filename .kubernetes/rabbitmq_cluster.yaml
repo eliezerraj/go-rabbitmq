@@ -1,0 +1,24 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  name: rabbitmq
+  namespace: msg
+spec:
+  replicas: 2
+  image: rabbitmq:latest
+  service:
+    type: ClusterIP
+  persistence:
+    storageClassName: hostpath 
+    storage: "10Mi"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 300Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  rabbitmq:
+    additionalConfig: |
+      log.console.level = info
+      default_user_tags.administrator = true

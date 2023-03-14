@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: svc-external-rabbitmq
+  namespace: msg
+subsets:
+  - addresses:
+    - ip: 10.109.115.134
+    ports:
+    - name: rabbitmq
+      port: 5672
