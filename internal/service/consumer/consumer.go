@@ -73,7 +73,7 @@ func (c *ConsumerService) Consumer() error {
 	go func() {
 		for d := range msgs {
 			childLogger.Debug().Msg("++++++++++++++++++++++++++++")
-			childLogger.Debug().Str("msg.Body:", string(d.Body)).Msg("message come !!!") 
+			childLogger.Debug().Str("msg.Body:", string(d.Body)).Msg(" *** ") 
 		}
 	}()
 	<-forever

@@ -1,0 +1,17 @@
+# docker network create --driver bridge go_net
+# docker build -t go-rmq-producer . -f dockerfile-producer
+
+FROM golang:1.18 As builder
+
+WORKDIR /app
+COPY . .
+
+WORKDIR /app/cmd/producer
+
+RUN go build -o go-rmq-producer -ldflags '-linkmode external -w -extldflags "-static"'
+#RUN CGO_ENABLED=0 GOOS=linux go build -ldflags '-w' -o go_kafka_consumer
+
+FROM alpine
+WORKDIR /app
+COPY --from=builder /app/cmd/producer/go-rmq-producer .
+CMD ["/app/go-rmq-producer"]

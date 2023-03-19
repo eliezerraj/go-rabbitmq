@@ -47,6 +47,3 @@ spec:
       log.console.level = info
       default_user_tags.administrator = true
       vm_memory_high_watermark.relative = 0.99
-      default_user= guest 
-      default_pass = guest
-      default_user_tags.administrator = true

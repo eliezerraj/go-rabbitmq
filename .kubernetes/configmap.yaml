@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "go-rmq-cm"
+  namespace: test-a
+  labels:
+    app: "go-rmq-cm"
+    version: "1.0"
+data:
+  LOG_LEVEL: "DEBUG"
+  RMQ_PORT:  "10.105.106.186:5672/"  #"rabbitmq-cluster.test-a.svc.cluster.local:5672/" # "10.102.42.237:5672/" # rabbitmq-cluster.msg.svc.cluster.local
+  RMQ_QUEUE: "task_queue"
+  DURATION: "2000"

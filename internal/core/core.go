@@ -10,14 +10,16 @@ type ConfigRabbitMQ struct {
 type Message struct {
 	ID		string	`json:id`
 	Key		string	`json:"key"`
+	Origin	string	`json:"origin"`
 	Person	Person	`json:"person,omitempty"`
 }
 
 //Person Constructor
-func NewMessage(id string, key string, person Person) *Message{
+func NewMessage(id string, key string, origin string ,person Person) *Message{
 	return &Message{
 		ID:	id,
 		Key: key,
+		Origin: origin,
 		Person: person,
 	}
 }
@@ -30,7 +32,7 @@ type Person struct {
 }
 
 //Person Constructor
-func NewPerson(id string, sk string ,name string, gender string) *Person{
+func NewPerson(id string, sk string,name string, gender string) *Person{
 	return &Person{
 		ID:	id,
 		SK: sk,

@@ -14,13 +14,12 @@ var (
 	configRabbitMQ core.ConfigRabbitMQ
 )
 
-
 func init(){
 	log.Debug().Msg("init")
 	zerolog.SetGlobalLevel(logLevel)
 
-	configRabbitMQ.User = "default_user_bz0ey1Nu-TKmjL-BQvz"
-	configRabbitMQ.Password = "wbFpBiXKxXtj3T3L1LOtPwkosaM1uzZD"
+	configRabbitMQ.User = "guest"
+	configRabbitMQ.Password = "guest"
 	configRabbitMQ.Port = "localhost:5672/"
 	configRabbitMQ.QueueName = "task_queue"
 
@@ -42,6 +41,18 @@ func getEnv() {
 	if os.Getenv("VERSION") !=  "" {
 		version = os.Getenv("VERSION")
 	}
+	if os.Getenv("RMQ_USER") !=  "" {
+		configRabbitMQ.User = os.Getenv("RMQ_USER")
+	}
+	if os.Getenv("RMQ_PASS") !=  "" {
+		configRabbitMQ.Password = os.Getenv("RMQ_PASS")
+	}
+	if os.Getenv("RMQ_PORT") !=  "" {
+		configRabbitMQ.Port = os.Getenv("RMQ_PORT")
+	}
+	if os.Getenv("RMQ_QUEUE") !=  "" {
+		configRabbitMQ.QueueName = os.Getenv("RMQ_QUEUE")
+	}
 }
 
 func main () {
@@ -49,6 +60,14 @@ func main () {
 	log.Debug().Msg("-------------------")
 	log.Debug().Str("version", version).
 				Msg("Enviroment Variables")
+	log.Debug().Str("configRabbitMQ.User: ", configRabbitMQ.User).
+				Msg("-----")
+	log.Debug().Str("configRabbitMQ.Password: ", configRabbitMQ.Password).
+				Msg("-----")
+	log.Debug().Str("configRabbitMQ.Port :", configRabbitMQ.Port).
+				Msg("----")
+	log.Debug().Str("configRabbitMQ.QueueName :", configRabbitMQ.QueueName).
+				Msg("----")
 	log.Debug().Msg("--------------------")
 	
 	consumer, err := consumer.NewConsumerService(&configRabbitMQ)

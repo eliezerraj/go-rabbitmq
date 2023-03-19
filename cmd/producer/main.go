@@ -5,6 +5,7 @@ import(
 	"time"
 	"os/signal"
 	"syscall"
+	"strconv"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -16,14 +17,15 @@ var (
 	logLevel =	zerolog.DebugLevel // InfoLevel DebugLevel
 	version	=	"go-rabbitmq producer version 1.0"
 	configRabbitMQ core.ConfigRabbitMQ
+	duration = 1000
 )
 
 func init(){
 	log.Debug().Msg("init")
 	zerolog.SetGlobalLevel(logLevel)
 
-	configRabbitMQ.User = "default_user_bz0ey1Nu-TKmjL-BQvz"
-	configRabbitMQ.Password = "wbFpBiXKxXtj3T3L1LOtPwkosaM1uzZD"
+	configRabbitMQ.User = "guest"
+	configRabbitMQ.Password = "guest"
 	configRabbitMQ.Port = "localhost:5672/"
 	configRabbitMQ.QueueName = "task_queue"
 
@@ -45,13 +47,36 @@ func getEnv() {
 	if os.Getenv("VERSION") !=  "" {
 		version = os.Getenv("VERSION")
 	}
+	if os.Getenv("RMQ_USER") !=  "" {
+		configRabbitMQ.User = os.Getenv("RMQ_USER")
+	}
+	if os.Getenv("RMQ_PASS") !=  "" {
+		configRabbitMQ.Password = os.Getenv("RMQ_PASS")
+	}
+	if os.Getenv("RMQ_PORT") !=  "" {
+		configRabbitMQ.Port = os.Getenv("RMQ_PORT")
+	}
+	if os.Getenv("RMQ_QUEUE") !=  "" {
+		configRabbitMQ.QueueName = os.Getenv("RMQ_QUEUE")
+	}
+	if os.Getenv("DURATION") !=  "" {
+		duration, _ = strconv.Atoi(os.Getenv("DURATION"))
+	}
 }
 
 func main () {
-	log.Debug().Msg("main producer")
+	log.Debug().Msg("main consumer")
 	log.Debug().Msg("-------------------")
 	log.Debug().Str("version", version).
 				Msg("Enviroment Variables")
+	log.Debug().Str("configRabbitMQ.User: ", configRabbitMQ.User).
+				Msg("-----")
+	log.Debug().Str("configRabbitMQ.Password: ", configRabbitMQ.Password).
+				Msg("-----")
+	log.Debug().Str("configRabbitMQ.Port :", configRabbitMQ.Port).
+				Msg("----")
+	log.Debug().Str("configRabbitMQ.QueueName :", configRabbitMQ.QueueName).
+				Msg("----")
 	log.Debug().Msg("--------------------")
 
 	producer, err := producer.NewProducerService(&configRabbitMQ)
@@ -79,7 +104,7 @@ func main () {
 func producerMessage(producer *producer.ProducerService,done chan string){
 	for i := 0 ; i < 36000; i++ {
 		producer.Producer(i)
-		time.Sleep(time.Millisecond * time.Duration(300))
+		time.Sleep(time.Millisecond * time.Duration(duration))
 	}
 	done <- "END"
 }
