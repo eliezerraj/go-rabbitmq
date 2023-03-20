@@ -21,7 +21,7 @@ func init(){
 	configRabbitMQ.User = "guest"
 	configRabbitMQ.Password = "guest"
 	configRabbitMQ.Port = "localhost:5672/"
-	configRabbitMQ.QueueName = "task_queue"
+	configRabbitMQ.QueueName = "queue_person_quorum"
 
 	getEnv()
 }
@@ -77,5 +77,7 @@ func main () {
 	}
 
 	log.Debug().Interface("consumer",consumer).Msg("main consumer")
-	consumer.Consumer()
+	
+	//consumer.ConsumerQueue()
+	consumer.ConsumerExchange()
 }

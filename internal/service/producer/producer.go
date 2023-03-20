@@ -26,6 +26,7 @@ func NewProducerService(configRabbitMQ *core.ConfigRabbitMQ) (*ProducerService, 
 
 	rabbitmqURL := "amqp://" + configRabbitMQ.User + ":" + configRabbitMQ.Password + "@" + configRabbitMQ.Port
 	childLogger.Debug().Str("rabbitmqURL :", rabbitmqURL).Msg("Rabbitmq URI")
+	
 	conn, err := amqp.Dial(rabbitmqURL)
 	if err != nil {
 		childLogger.Error().Err(err).Msg("error connect to server message") 
@@ -37,8 +38,8 @@ func NewProducerService(configRabbitMQ *core.ConfigRabbitMQ) (*ProducerService, 
 	}, nil
 }
 
-func (p *ProducerService) Producer(i int) error {
-	childLogger.Debug().Msg("Producer")
+func (p *ProducerService) ProducerQueue(i int) error {
+	childLogger.Debug().Msg("ProducerQueue")
 
 	// Get IP
 	addrs, err := net.InterfaceAddrs()
@@ -61,35 +62,36 @@ func (p *ProducerService) Producer(i int) error {
 	}
 	defer ch.Close()
 
-	q, err := ch.QueueDeclare(
-								p.configRabbitMQ.QueueName, // name
-								false,         // durable
+	args := amqp.Table{ // queue args
+		amqp.QueueTypeArg: amqp.QueueTypeQuorum,
+	}
+	q, err := ch.QueueDeclare(p.configRabbitMQ.QueueName, // name
+								true,         // durable
 								false,        // delete when unused
 								false,        // exclusive
 								false,        // no-wait
-								nil,          // arguments
+								args,          // arguments
 	)
 	if err != nil {
-		childLogger.Error().Err(err).Msg("error queue declare message") 
+		childLogger.Error().Err(err).Msg("error declare queue !!!") 
 		return err
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
 
 	person_mock := p.CreateDataMock(i,my_ip)
 	body, _ := json.Marshal(person_mock)
 
 	payloadMsg := amqp.Publishing{	
-							ContentType:  "text/plain",
-							//DeliveryMode: amqp.Persistent,
-							//Priority:     0,
+							ContentType:  "application/json",
+							Timestamp:    time.Now(),
+							DeliveryMode: amqp.Persistent,
 							Body:         []byte(body),
 	}
 
-	//childLogger.Error().Interface("",payloadMsg).Msg("error publish message") 
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	err = ch.PublishWithContext(ctx,
-								"",     // exchange
+								"", // exchange
 								q.Name, // routing key
 								false,  // mandatory
 								false,  // immediate
@@ -99,7 +101,75 @@ func (p *ProducerService) Producer(i int) error {
 		return err
 	}
 
-	childLogger.Debug().Str("msg :", string(body)).Msg("Success Publish a message")
+	childLogger.Debug().Str("msg :", string(body)).Msg("Success Publish a message (ProducerQueue)")
+
+	return nil	
+}
+
+func (p *ProducerService) ProducerExchange(i int) error {
+	childLogger.Debug().Msg("ProducerExchange")
+
+	// Get IP
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		childLogger.Error().Err(err).Msg("Error to get the POD IP addresd") 
+		return err
+	}
+	for _, a := range addrs {
+		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				my_ip = ipnet.IP.String()
+			}
+		}
+	}
+
+	ch, err := p.producer.Channel()
+	if err != nil {
+		childLogger.Error().Err(err).Msg("error channel the server message") 
+		return err
+	}
+	defer ch.Close()
+
+	// declare exchange if not exist
+	topic_exchange :=  "personCreated" //"personCreated" 
+	err = ch.ExchangeDeclare(	topic_exchange, // name
+								"direct",      // type
+								true,          // durable
+								false,         // auto-deleted
+								false,         // internal
+								false,         // no-wait
+								nil,           // arguments
+	)
+	if err != nil {
+		childLogger.Error().Err(err).Msg("error exchange queue !!!") 
+		return err
+	}
+
+	person_mock := p.CreateDataMock(i,my_ip)
+	body, _ := json.Marshal(person_mock)
+
+	payloadMsg := amqp.Publishing{	
+							ContentType:  "application/json",
+							Timestamp:    time.Now(),
+							DeliveryMode: amqp.Persistent,
+							Body:         []byte(body),
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err = ch.PublishWithContext(ctx,
+								topic_exchange, // exchange
+								"info", // routing key
+								false,  // mandatory
+								false,  // immediate
+								payloadMsg)
+	if err != nil {
+		childLogger.Error().Err(err).Msg("error publish message") 
+		return err
+	}
+
+	childLogger.Debug().Str("msg :", string(body)).Msg("Success Publish a message (ProducerExchange)")
 
 	return nil	
 }
