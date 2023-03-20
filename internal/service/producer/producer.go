@@ -160,7 +160,7 @@ func (p *ProducerService) ProducerExchange(i int) error {
 
 	err = ch.PublishWithContext(ctx,
 								topic_exchange, // exchange
-								"info", // routing key
+								"info11", // routing key
 								false,  // mandatory
 								false,  // immediate
 								payloadMsg)

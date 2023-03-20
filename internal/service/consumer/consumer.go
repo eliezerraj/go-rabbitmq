@@ -124,7 +124,7 @@ func (c *ConsumerService) ConsumerExchange() error {
 	}
 
 	err = ch.QueueBind(q.Name, 
-						"info", 		// routing key
+						"info11", 		// routing key
 						topic_exchange,  // exchange
 						false, 
 						nil,
