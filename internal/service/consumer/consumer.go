@@ -96,21 +96,6 @@ func (c *ConsumerService) ConsumerExchange() error {
 	}
 	defer ch.Close()
 
-	args := amqp.Table{ // queue args
-		amqp.QueueTypeArg: amqp.QueueTypeQuorum,
-	}
-	q, err := ch.QueueDeclare(	c.configRabbitMQ.QueueName, // name
-								true,         // durable
-								false,        // delete when unused
-								false,        // exclusive
-								false,        // no-wait
-								args,          // arguments
-	)
-	if err != nil {
-		childLogger.Error().Err(err).Msg("error declare queue !!!!") 
-		return err
-	}
-
 	// declare exchange if not exist
 	topic_exchange :=  "personCreated" //"personCreated" 
 	err = ch.ExchangeDeclare(	topic_exchange, // name
@@ -125,10 +110,22 @@ func (c *ConsumerService) ConsumerExchange() error {
 		childLogger.Error().Err(err).Msg("error exchange queue !!!") 
 		return err
 	}
-	
+
+	q, err := ch.QueueDeclare(	"", // name
+								true,         // durable
+								false,        // delete when unused
+								false,        // exclusive
+								false,        // no-wait
+								nil,          // arguments
+	)
+	if err != nil {
+		childLogger.Error().Err(err).Msg("error declare queue !!!!") 
+		return err
+	}
+
 	err = ch.QueueBind(q.Name, 
-						"info", 
-						topic_exchange, 
+						"info", 		// routing key
+						topic_exchange,  // exchange
 						false, 
 						nil,
 	)
