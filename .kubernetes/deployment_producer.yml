@@ -1,10 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: go-rmq-producer
+  name: &app-name go-rmq-producer
   namespace: test-a
   labels:
-    app: "go-rmq-producer"
+    app: *app-name
+    enviroment: dev
     version: "1.0"
 spec:
   replicas: 1
@@ -12,11 +13,12 @@ spec:
     type: RollingUpdate
   selector:
     matchLabels:
-      app: go-rmq-producer
+      app: *app-name
   template:
     metadata:
       labels:
-        app: go-rmq-producer
+        app: *app-name
+        enviroment: dev
         version: "1.0"
     spec:
       securityContext:
@@ -24,7 +26,7 @@ spec:
         runAsGroup: 2000
         fsGroup: 3000
       containers:
-      - name: go-rmq-producer
+      - name: *app-name
         imagePullPolicy: Never
         image: go-rmq-producer:latest
         resources:
@@ -68,3 +70,13 @@ spec:
           - configMapRef:
               name: go-rmq-cm
       terminationGracePeriodSeconds: 60
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                  matchLabels:
+                    app: *app-name
+                    environment: dev
+              topologyKey: topology.kubernetes.io/zone
+            weight: 100
