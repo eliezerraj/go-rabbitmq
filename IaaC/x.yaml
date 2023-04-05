@@ -1,0 +1,116 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Echo Sender Retry
+Parameters:
+  Versao:
+    Type: String
+  Env:
+    Type: String
+    Description: Definition of environment
+  OidcEksCluster:
+    Type: String
+    Description: OIDC endpoint EKS Cluster
+Mappings:
+  Tag:
+    service:
+      value: echo-sender-retry
+    squad:
+      value: squad-zion
+    slack:
+      value: squad-zion
+    email:
+      value: zion
+Conditions:
+  isPrd:
+    Fn::Equals:
+    - Ref: Env
+    - prd
+  isQa:
+    Fn::Equals:
+    - Ref: Env
+    - qa
+  isQaOrPrd:
+    Fn::Or:
+    - Fn::Equals:
+      - Ref: Env
+      - qa
+    - Fn::Equals:
+      - Ref: Env
+      - prd
+Resources:
+  EchoSenderRetryRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: EchoSenderRetryRole
+      AssumeRolePolicyDocument:
+        Fn::Sub:
+        - "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"\
+          Effect\": \"Allow\",\n      \"Principal\": {\n        \"Federated\": \"\
+          arn:aws:iam::${AWS::AccountId}:oidc-provider/oidc.eks.${AWS::Region}.amazonaws.com/id/${eksId}\"\
+          \n      },\n      \"Action\": \"sts:AssumeRoleWithWebIdentity\",\n     \
+          \ \"Condition\": {\n        \"StringEquals\": {\n          \"${eksEndpoint}:sub\"\
+          : \"system:serviceaccount:echo-${Env}:echo-sender-retry-sa\"\n        }\n\
+          \      }\n    }\n  ]\n}\n"
+        - eksId:
+            Fn::Select:
+            - 4
+            - Fn::Split:
+              - /
+              - Fn::ImportValue:
+                  Fn::Sub: ${OidcEksCluster}
+          eksEndpoint:
+            Fn::Select:
+            - 1
+            - Fn::Split:
+              - //
+              - Fn::ImportValue:
+                  Fn::Sub: ${OidcEksCluster}
+          Env:
+            Ref: Env
+      Policies:
+      - PolicyName: EchoSenderRetryPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Action:
+            - kms:Decrypt
+            - sqs:*
+            - secretsmanager:GetResourcePolicy
+            - secretsmanager:GetSecretValue
+            - secretsmanager:DescribeSecret
+            - secretsmanager:ListSecretVersionIds
+            Resource: '*'
+            Effect: Allow
+      Tags:
+      - Key: env
+        Value:
+          Ref: Env
+      - Key: service
+        Value:
+          Fn::FindInMap:
+          - Tag
+          - service
+          - value
+      - Key: stack
+        Value:
+          Fn::Sub: ${AWS::StackName}
+      - Key: squad
+        Value:
+          Fn::FindInMap:
+          - Tag
+          - squad
+          - value
+      - Key: slack
+        Value:
+          Fn::FindInMap:
+          - Tag
+          - slack
+          - value
+      - Key: email
+        Value:
+          Fn::FindInMap:
+          - Tag
+          - email
+          - value
+      - Key: resource
+        Value: iam-role

@@ -1,0 +1,117 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: RMQ Cluster OIDC
+
+Parameters:
+  Versao:
+    Type: String
+    Default: 1.0
+  Env:
+    Description: Execution environment
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - qa
+      - hml
+      - prd
+  OidcEksCluster:
+    Type: String
+    Description: OIDC endpoint EKS Cluster
+    Default: echo-eks-dev-EKS-OpenIdConnectIssuerUrls
+    
+Conditions:
+  IsPrd: !Equals 
+    - !Ref Env
+    - prd
+
+Mappings:
+  Tag:
+    Service:
+      value: echo-rmq-cluster
+    Squad:
+      value: squad-zion
+    Slack:
+      value: squad-zion
+    Email:
+      value: zion
+
+Resources:
+  EchoRMQClusterRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: EchoRMQClusterRole
+      AssumeRolePolicyDocument:
+        Fn::Sub:
+        - "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"\
+          Effect\": \"Allow\",\n      \"Principal\": {\n        \"Federated\": \"\
+          arn:aws:iam::${AWS::AccountId}:oidc-provider/oidc.eks.${AWS::Region}.amazonaws.com/id/${eksId}\"\
+          \n      },\n      \"Action\": \"sts:AssumeRoleWithWebIdentity\",\n     \
+          \ \"Condition\": {\n        \"StringEquals\": {\n          \"${eksEndpoint}:sub\"\
+          : \"system:serviceaccount:echo-${Env}:echo-rmq-cluster-sa\"\n        }\n\
+          \      }\n    }\n  ]\n}\n"
+        - eksId:
+            Fn::Select:
+            - 4
+            - Fn::Split:
+              - /
+              - Fn::ImportValue:
+                  Fn::Sub: ${OidcEksCluster}
+          eksEndpoint:
+            Fn::Select:
+            - 1
+            - Fn::Split:
+              - //
+              - Fn::ImportValue:
+                  Fn::Sub: ${OidcEksCluster}
+          Env:
+            Ref: Env
+      Policies:
+      - PolicyName: EchoRMQClusterPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Action:
+            - kms:Decrypt
+            - secretsmanager:GetResourcePolicy
+            - secretsmanager:GetSecretValue
+            - secretsmanager:DescribeSecret
+            - secretsmanager:ListSecretVersionIds
+            Resource: '*'
+            Effect: Allow
+          - Action:
+            - elasticfilesystem:DescribeAccessPoints
+            - elasticfilesystem:DescribeFileSystems
+            - elasticfilesystem:DescribeMountTargets
+            - ec2:DescribeAvailabilityZones
+            Resource: '*'
+            Effect: Allow
+          - Action:
+            - elasticfilesystem:CreateAccessPoint
+            Condition:
+              StringLike:
+                "aws:RequestTag/efs.csi.aws.com/cluster": true
+            Resource: '*'
+            Effect: Allow
+          - Action:
+            - elasticfilesystem:DeleteAccessPoint
+            Condition:
+              StringEquals:
+                "aws:ResourceTag/efs.csi.aws.com/cluster": true
+            Resource: '*'
+            Effect: Allow
+      Tags:
+        - Key: env
+          Value: !Ref Env
+        - Key: service
+          Value: !FindInMap [Tag, Service, value]
+        - Key: stack
+          Value: !Sub ${AWS::StackName}
+        - Key: squad
+          Value: !FindInMap [Tag, Squad, value]
+        - Key: slack
+          Value: !FindInMap [Tag, Slack, value]
+        - Key: email
+          Value: !FindInMap [Tag, Email, value]
+        - Key: resource
+          Value: iam-role

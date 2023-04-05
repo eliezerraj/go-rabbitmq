@@ -5,6 +5,7 @@ type ConfigRabbitMQ struct {
 	Password 	string
 	Port		string
 	QueueName	string
+	TimeDeleyQueue int
 }
 
 type Message struct {

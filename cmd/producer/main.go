@@ -103,8 +103,8 @@ func main () {
 
 func producerMessage(producer *producer.ProducerService,done chan string){
 	for i := 0 ; i < 36000; i++ {
-		//producer.ProducerQueue(i)
-		producer.ProducerExchange(i)
+		producer.ProducerQueue(i)
+		//producer.ProducerExchange(i)
 		time.Sleep(time.Millisecond * time.Duration(duration))
 	}
 	done <- "END"

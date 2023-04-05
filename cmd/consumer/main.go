@@ -2,6 +2,7 @@ package main
 
 import(
 	"os"
+	"strconv"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/go-rabbitmq/internal/service/consumer"
@@ -22,6 +23,7 @@ func init(){
 	configRabbitMQ.Password = "guest"
 	configRabbitMQ.Port = "localhost:5672/"
 	configRabbitMQ.QueueName = "queue_person_quorum"
+	configRabbitMQ.TimeDeleyQueue = 500
 
 	getEnv()
 }
@@ -53,6 +55,10 @@ func getEnv() {
 	if os.Getenv("RMQ_QUEUE") !=  "" {
 		configRabbitMQ.QueueName = os.Getenv("RMQ_QUEUE")
 	}
+	if os.Getenv("TIME_DELAY_QUEUE") !=  "" {
+		intVar, _ := strconv.Atoi(os.Getenv("TIME_DELAY_QUEUE"))
+		configRabbitMQ.TimeDeleyQueue = intVar
+	}
 }
 
 func main () {
@@ -78,6 +84,6 @@ func main () {
 
 	log.Debug().Interface("consumer",consumer).Msg("main consumer")
 	
-	//consumer.ConsumerQueue()
-	consumer.ConsumerExchange()
+	consumer.ConsumerQueue()
+	//consumer.ConsumerExchange()
 }

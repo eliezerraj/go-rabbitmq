@@ -1,0 +1,14 @@
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: &component-name keda-trigger-auth-rabbitmq-conn
+  namespace: test-a
+  labels:
+    app: *component-name
+    enviroment: dev
+    version: "1.0"
+spec:
+  secretTargetRef:
+    - parameter: host
+      name: rmq-secret-external-secret
+      key: RMQ_URL

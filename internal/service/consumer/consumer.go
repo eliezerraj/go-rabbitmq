@@ -1,7 +1,7 @@
 package consumer
 
 import(
-
+	"time"
 	"github.com/rs/zerolog/log"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/go-rabbitmq/internal/core"
@@ -79,6 +79,7 @@ func (c *ConsumerService) ConsumerQueue() error {
 		for d := range msgs {
 			childLogger.Debug().Msg("++++++++++++++++++++++++++++")
 			childLogger.Debug().Str("msg.Body:", string(d.Body)).Msg(" Success Receive a message (ConsumerQueue) ") 
+			time.Sleep(time.Duration(c.configRabbitMQ.TimeDeleyQueue) * time.Millisecond)
 		}
 	}()
 	<-forever
@@ -160,6 +161,7 @@ func (c *ConsumerService) ConsumerExchange() error {
 		for d := range msgs {
 			childLogger.Debug().Msg("++++++++++++++++++++++++++++")
 			childLogger.Debug().Str("msg.Body:", string(d.Body)).Msg(" Success Receive a message (ConsumerExchange) ") 
+			time.Sleep(time.Duration(c.configRabbitMQ.TimeDeleyQueue) * time.Millisecond)
 		}
 	}()
 	<-forever
