@@ -7,6 +7,3 @@ parameters:
   provisioningMode: efs-ap
   fileSystemId: fs-0c7fc732365d5879c
   directoryPerms: "755"
-  #gidRangeStart: "1000"
-  #gidRangeEnd: "2000"
-  #basePath: "/" 

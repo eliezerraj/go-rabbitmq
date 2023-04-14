@@ -58,16 +58,16 @@ spec:
           - name: RMQ_USER
             valueFrom:
               secretKeyRef:
-                name: rmq-secret-external-secret
+                name: go-rmq-consumer-external-secret
                 key: RMQ_USER
           - name: RMQ_PASS
             valueFrom:
               secretKeyRef:
-                name: rmq-secret-external-secret
+                name: go-rmq-consumer-external-secret
                 key: RMQ_PASS
         envFrom:
           - configMapRef:
-              name: go-rmq-cm
+              name: go-rmq-consumer-cm
       terminationGracePeriodSeconds: 60
       affinity:
         podAntiAffinity:

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: &component-name go-rmq-cm
+  name: &component-name go-rmq-producer-cm
   namespace: test-a
   labels:
     app: *component-name
