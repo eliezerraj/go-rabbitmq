@@ -1,0 +1,12 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: rmq-efs-teste
+provisioner: efs.csi.aws.com
+parameters:
+  provisioningMode: efs-ap
+  fileSystemId: fs-040f985d888134f99
+  directoryPerms: "755"
+  #gidRangeStart: "1000"
+  #gidRangeEnd: "2000"
+  #basePath: "/" 

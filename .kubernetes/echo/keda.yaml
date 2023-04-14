@@ -1,0 +1,22 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: &component-name echo-keda-go-rmq-consumer
+  namespace: echo-dev
+  labels:
+    app: *component-name
+    enviroment: dev
+    version: "1.0"
+spec:
+  scaleTargetRef:
+    name: go-rmq-consumer
+  triggers:
+  - type: rabbitmq
+    metadata:
+      #host: amqp://guest:guest@172.20.244.153:5672/ # local-test
+      protocol: amqp
+      queueName: queue_person_quorum
+      mode: QueueLength
+      value: "20"
+    authenticationRef:
+      name: echo-keda-go-rmq-consumer-auth

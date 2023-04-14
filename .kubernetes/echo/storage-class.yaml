@@ -1,0 +1,13 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: rmq-efs
+  labels:
+    app: "rmq-efs"
+    enviroment: "dev"
+    version: "1.0"
+provisioner: efs.csi.aws.com
+parameters:
+  provisioningMode: efs-ap
+  fileSystemId: fs-0faf1aa25c33752a5
+  directoryPerms: "755"

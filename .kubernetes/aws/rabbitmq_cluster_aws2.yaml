@@ -1,0 +1,52 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  name: rabbitmq-cluster-teste
+  namespace: test-a
+spec:
+  replicas: 1
+  override:
+    statefulSet:
+      spec:
+        podManagementPolicy: OrderedReady
+  image: rabbitmq:latest
+  service:
+    type: ClusterIP
+  persistence:
+    storageClassName: rmq-efs-teste
+    storage: "10Mi"
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+              -  rabbitmq-cluster-teste
+        topologyKey: kubernetes.io/zone
+  resources:
+    requests:
+      cpu: 100m
+      memory: 300Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  rabbitmq:
+    additionalPlugins:
+      - rabbitmq_management
+      - rabbitmq_peer_discovery_k8s
+    additionalConfig: |
+      cluster_formation.peer_discovery_backend  = rabbit_peer_discovery_k8s
+      cluster_formation.k8s.host = kubernetes.default.svc.cluster.local
+      cluster_formation.k8s.address_type = hostname
+      cluster_formation.node_cleanup.interval = 10
+      cluster_formation.node_cleanup.only_log_warning = true
+      cluster_partition_handling = autoheal
+      queue_master_locator=min-masters
+      log.console.level = info
+      default_user_tags.administrator = true
+      vm_memory_high_watermark.relative = 0.99
+      default_user= guest 
+      default_pass = guest
+      default_user_tags.administrator = true
