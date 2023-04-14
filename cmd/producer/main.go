@@ -17,7 +17,7 @@ var (
 	logLevel =	zerolog.DebugLevel // InfoLevel DebugLevel
 	version	=	"go-rabbitmq producer version 1.0"
 	configRabbitMQ core.ConfigRabbitMQ
-	duration = 5000
+	duration = 1000
 )
 
 func init(){
