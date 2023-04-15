@@ -11,4 +11,4 @@ spec:
   secretTargetRef:
     - parameter: host
       name: go-rmq-consumer-external-secret
-      key: host
+      key: RMQ_URL
