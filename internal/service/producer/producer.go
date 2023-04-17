@@ -177,7 +177,7 @@ func (p *ProducerService) ProducerExchange(i int) error {
 func (p *ProducerService) CreateDataMock(i int, my_ip string) *core.Message{
 	rand.Seed(time.Now().UnixNano())
 	min := 1
-	max := 1000
+	max := 10
 	salt := rand.Intn(max-min+1) + min
 	key_person := "PERSON-"+ strconv.Itoa(salt)
 	key_msg := "key-"+ strconv.Itoa(i)
