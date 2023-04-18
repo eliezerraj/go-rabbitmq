@@ -1,0 +1,14 @@
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: &component-name echo-keda-go-rmq-consumer-auth
+  namespace: echo-dev
+  labels:
+    app: *component-name
+    enviroment: dev
+    version: "1.0"
+spec:
+  secretTargetRef:
+    - parameter: host
+      name: echo-rmq-external-secret
+      key: RMQ_URL

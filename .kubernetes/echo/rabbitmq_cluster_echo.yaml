@@ -2,7 +2,11 @@ apiVersion: rabbitmq.com/v1beta1
 kind: RabbitmqCluster
 metadata:
   name: rabbitmq-cluster
-  namespace: test-a
+  namespace: echo-dev
+  labels:
+    app: "rabbitmq-cluster"
+    enviroment: "dev"
+    version: "1.0"
 spec:
   replicas: 2
   override:
@@ -14,7 +18,7 @@ spec:
     type: ClusterIP
   persistence:
     storageClassName: rmq-efs
-    storage: "10Mi"
+    storage: 0 # For fast deploy
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -27,10 +31,10 @@ spec:
         topologyKey: kubernetes.io/zone
   resources:
     requests:
-      cpu: 100m
+      cpu: 500m
       memory: 300Mi
     limits:
-      cpu: 500m
+      cpu: 1000m
       memory: 1Gi
   rabbitmq:
     additionalPlugins:

@@ -9,7 +9,7 @@ COPY . .
 WORKDIR /app/cmd/consumer
 
 RUN go build -o go-rmq-consumer -ldflags '-linkmode external -w -extldflags "-static"'
-#RUN CGO_ENABLED=0 GOOS=linux go build -ldflags '-w' -o go_kafka_consumer
+#RUN CGO_ENABLED=0 GOOS=linux go build -ldflags '-w' -o go_kafka_consumer # alpine
 
 FROM alpine
 WORKDIR /app

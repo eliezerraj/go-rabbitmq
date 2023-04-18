@@ -23,7 +23,7 @@ func init(){
 	configRabbitMQ.Password = "guest"
 	configRabbitMQ.Port = "localhost:5672/"
 	configRabbitMQ.QueueName = "queue_person_quorum"
-	configRabbitMQ.TimeDeleyQueue = 500
+	configRabbitMQ.TimeDeleyQueue = 1000
 
 	getEnv()
 }

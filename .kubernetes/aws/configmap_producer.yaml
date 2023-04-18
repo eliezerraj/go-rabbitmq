@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: &component-name go-rmq-producer-cm
+  namespace: test-a
+  labels:
+    app: *component-name
+    enviroment: dev
+    version: "1.0"
+data:
+  LOG_LEVEL: "DEBUG"
+  RMQ_PORT:  "rabbitmq-cluster.test-a:5672/"  #"rabbitmq-cluster.test-a.svc.cluster.local:5672/" # "10.102.42.237:5672/" # rabbitmq-cluster.msg.svc.cluster.local
+  RMQ_QUEUE: "queue_person_quorum"
+  DURATION: "0"                  # time to producer msg

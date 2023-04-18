@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: &app-name go-rmq-consumer
-  namespace: test-a
+  namespace: echo-dev
   labels:
     app: *app-name
     enviroment: dev
@@ -27,7 +27,7 @@ spec:
         fsGroup: 3000
       containers:
       - name: *app-name
-        image: 908671954593.dkr.ecr.us-east-2.amazonaws.com/go-rmq-consumer:latest
+        image: 184397147467.dkr.ecr.us-east-2.amazonaws.com/go-rmq-consumer:latest
         resources:
            requests:
              cpu: 100m
@@ -58,16 +58,16 @@ spec:
           - name: RMQ_USER
             valueFrom:
               secretKeyRef:
-                name: go-rmq-consumer-external-secret
+                name: echo-rmq-external-secret
                 key: RMQ_USER
           - name: RMQ_PASS
             valueFrom:
               secretKeyRef:
-                name: go-rmq-consumer-external-secret
+                name: echo-rmq-external-secret
                 key: RMQ_PASS
         envFrom:
           - configMapRef:
-              name: go-rmq-consumer-cm
+              name: echo-rmq-cluster
       terminationGracePeriodSeconds: 60
       affinity:
         podAntiAffinity:
