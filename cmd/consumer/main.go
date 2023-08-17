@@ -11,7 +11,7 @@ import(
 
 var (
 	logLevel =	zerolog.DebugLevel // InfoLevel DebugLevel
-	version	=	"go-rabbitmq consumer version 1.0"
+	version	=	"go-rabbitmq consumer version 2.0"
 	configRabbitMQ core.ConfigRabbitMQ
 )
 
@@ -23,7 +23,7 @@ func init(){
 	configRabbitMQ.Password = "guest"
 	configRabbitMQ.Port = "localhost:5672/"
 	configRabbitMQ.QueueName = "queue_person_quorum"
-	configRabbitMQ.TimeDeleyQueue = 1000
+	configRabbitMQ.TimeDelayQueue = 0
 
 	getEnv()
 }
@@ -57,7 +57,7 @@ func getEnv() {
 	}
 	if os.Getenv("TIME_DELAY_QUEUE") !=  "" {
 		intVar, _ := strconv.Atoi(os.Getenv("TIME_DELAY_QUEUE"))
-		configRabbitMQ.TimeDeleyQueue = intVar
+		configRabbitMQ.TimeDelayQueue = intVar
 	}
 }
 
@@ -65,7 +65,7 @@ func main () {
 	log.Debug().Msg("main consumer")
 	log.Debug().Msg("-------------------")
 	log.Debug().Str("version", version).
-				Msg("Enviroment Variables")
+				Msg("-----------")
 	log.Debug().Str("configRabbitMQ.User: ", configRabbitMQ.User).
 				Msg("-----")
 	log.Debug().Str("configRabbitMQ.Password: ", configRabbitMQ.Password).

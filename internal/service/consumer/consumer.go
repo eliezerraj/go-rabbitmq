@@ -22,7 +22,9 @@ func NewConsumerService(configRabbitMQ *core.ConfigRabbitMQ) (*ConsumerService, 
 	childLogger.Debug().Msg("NewConsumerService")
 
 	rabbitmqURL := "amqp://" + configRabbitMQ.User + ":" + configRabbitMQ.Password + "@" + configRabbitMQ.Port
+	
 	childLogger.Debug().Str("rabbitmqURL :", rabbitmqURL).Msg("Rabbitmq URI")
+	
 	conn, err := amqp.Dial(rabbitmqURL)
 	if err != nil {
 		childLogger.Error().Err(err).Msg("error connect to server message") 
@@ -59,9 +61,20 @@ func (c *ConsumerService) ConsumerQueue() error {
 		return err
 	}
 
+	// Adjust qos for Keda purposes
+	err = ch.Qos(
+		1,     // prefetch count
+		0,     // prefetch size
+		false, // global
+	)
+	if err != nil {
+		childLogger.Error().Err(err).Msg("error declare Qos !!!!") 
+		return err
+	}
+
 	msgs, err := ch.Consume(	q.Name, // queue
 								consumer_name,    // consumer
-								true,   // auto-ack
+								false,   // auto-ack
 								false,  // exclusive
 								false,  // no-local
 								false,  // no-wait
@@ -79,7 +92,8 @@ func (c *ConsumerService) ConsumerQueue() error {
 		for d := range msgs {
 			childLogger.Debug().Msg("++++++++++++++++++++++++++++")
 			childLogger.Debug().Str("msg.Body:", string(d.Body)).Msg(" Success Receive a message (ConsumerQueue) ") 
-			time.Sleep(time.Duration(c.configRabbitMQ.TimeDeleyQueue) * time.Millisecond)
+			time.Sleep(time.Duration(c.configRabbitMQ.TimeDelayQueue) * time.Millisecond)
+			d.Ack(false)
 		}
 	}()
 	<-forever
@@ -161,7 +175,7 @@ func (c *ConsumerService) ConsumerExchange() error {
 		for d := range msgs {
 			childLogger.Debug().Msg("++++++++++++++++++++++++++++")
 			childLogger.Debug().Str("msg.Body:", string(d.Body)).Msg(" Success Receive a message (ConsumerExchange) ") 
-			time.Sleep(time.Duration(c.configRabbitMQ.TimeDeleyQueue) * time.Millisecond)
+			time.Sleep(time.Duration(c.configRabbitMQ.TimeDelayQueue) * time.Millisecond)
 		}
 	}()
 	<-forever

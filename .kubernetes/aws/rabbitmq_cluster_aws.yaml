@@ -4,12 +4,12 @@ metadata:
   name: rabbitmq-cluster
   namespace: test-a
 spec:
-  replicas: 2
+  replicas: 1
   override:
     statefulSet:
       spec:
         podManagementPolicy: OrderedReady
-  image: rabbitmq:latest
+  image: 908671954593.dkr.ecr.us-east-2.amazonaws.com/dock-rabbitmq:latest #rabbitmq:latest
   service:
     type: ClusterIP
   persistence:
@@ -36,6 +36,7 @@ spec:
     additionalPlugins:
       - rabbitmq_management
       - rabbitmq_peer_discovery_k8s
+      - rabbitmq_delayed_message_exchange
     additionalConfig: |
       cluster_formation.peer_discovery_backend  = rabbit_peer_discovery_k8s
       cluster_formation.k8s.host = kubernetes.default.svc.cluster.local
