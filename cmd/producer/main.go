@@ -15,9 +15,9 @@ import(
 
 var (
 	logLevel =	zerolog.DebugLevel // InfoLevel DebugLevel
-	version	=	"go-rabbitmq producer version 1.0"
+	version	=	"go-rabbitmq producer version 2.0"
 	configRabbitMQ core.ConfigRabbitMQ
-	duration = 0
+	duration = 500
 )
 
 func init(){
@@ -68,7 +68,7 @@ func main () {
 	log.Debug().Msg("main consumer")
 	log.Debug().Msg("-------------------")
 	log.Debug().Str("version", version).
-				Msg("Enviroment Variables")
+				Msg("--------------")
 	log.Debug().Str("configRabbitMQ.User: ", configRabbitMQ.User).
 				Msg("-----")
 	log.Debug().Str("configRabbitMQ.Password: ", configRabbitMQ.Password).
@@ -104,6 +104,7 @@ func main () {
 func producerMessage(producer *producer.ProducerService,done chan string){
 	for i := 0 ; i < 36000; i++ {
 		producer.ProducerQueue(i)
+		//producer.ProducerQueueDelayed(i)
 		//producer.ProducerExchange(i)
 		time.Sleep(time.Millisecond * time.Duration(duration))
 	}

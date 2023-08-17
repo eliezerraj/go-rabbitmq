@@ -44,7 +44,7 @@ func (p *ProducerService) ProducerQueue(i int) error {
 	// Get IP
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
-		childLogger.Error().Err(err).Msg("Error to get the POD IP addresd") 
+		childLogger.Error().Err(err).Msg("Error to get the POD IP address") 
 		return err
 	}
 	for _, a := range addrs {
@@ -65,12 +65,13 @@ func (p *ProducerService) ProducerQueue(i int) error {
 	args := amqp.Table{ // queue args
 		amqp.QueueTypeArg: amqp.QueueTypeQuorum,
 	}
+
 	q, err := ch.QueueDeclare(p.configRabbitMQ.QueueName, // name
 								true,         // durable
 								false,        // delete when unused
 								false,        // exclusive
-								false,        // no-wait
-								args,          // arguments
+								false,         // no-wait
+								args,         // arguments
 	)
 	if err != nil {
 		childLogger.Error().Err(err).Msg("error declare queue !!!") 
@@ -80,11 +81,17 @@ func (p *ProducerService) ProducerQueue(i int) error {
 	person_mock := p.CreateDataMock(i,my_ip)
 	body, _ := json.Marshal(person_mock)
 
-	payloadMsg := amqp.Publishing{	
-							ContentType:  "application/json",
-							Timestamp:    time.Now(),
-							DeliveryMode: amqp.Persistent,
-							Body:         []byte(body),
+	delay := 10000
+	headers := make(amqp.Table)
+	if delay != 0 {
+		headers["x-delay"] = delay
+	}
+
+	payloadMsg := amqp.Publishing{	ContentType:  "application/json",
+									Timestamp:    time.Now(),
+									DeliveryMode: amqp.Persistent,
+									Headers:      headers,
+									Body:         []byte(body),
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -101,7 +108,79 @@ func (p *ProducerService) ProducerQueue(i int) error {
 		return err
 	}
 
-	childLogger.Debug().Str("msg :", string(body)).Msg("Success Publish a message (ProducerQueue)")
+	childLogger.Debug().Str("msg :", string(body)).Msg("Success Publish a message (ProducerQueue v 1.3)")
+
+	return nil	
+}
+
+func (p *ProducerService) ProducerQueueDelayed(i int) error {
+	childLogger.Debug().Msg("ProducerQueueDelayed")
+
+	// Get IP
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		childLogger.Error().Err(err).Msg("Error to get the POD IP address") 
+		return err
+	}
+	for _, a := range addrs {
+		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				my_ip = ipnet.IP.String()
+			}
+		}
+	}
+
+	ch, err := p.producer.Channel()
+	if err != nil {
+		childLogger.Error().Err(err).Msg("error channel the server message") 
+		return err
+	}
+	defer ch.Close()
+
+	args := amqp.Table{ // queue args
+		amqp.QueueTypeArg: amqp.QueueTypeQuorum,
+	//	"x-message-ttl": 600000,  // milli seconds
+	}
+
+	q, err := ch.QueueDeclare(	p.configRabbitMQ.QueueName, // name
+								true,         // durable
+								false,        // delete when unused
+								false,        // exclusive
+								false,         // no-wait
+								args,         // arguments
+	)
+	if err != nil {
+		childLogger.Error().Err(err).Msg("error declare queue !!!") 
+		return err
+	}
+
+	person_mock := p.CreateDataMock(i,my_ip)
+	body, _ := json.Marshal(person_mock)
+
+	payloadMsg := amqp.Publishing{	ContentType:  "application/json",
+									Timestamp:    time.Now(),
+									DeliveryMode: amqp.Persistent,
+									Headers: amqp.Table{
+										"x-delay": 50000,
+									},
+									Body:         []byte(body),
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err = ch.PublishWithContext(ctx,
+								"", // exchange
+								q.Name, // routing key
+								false,  // mandatory
+								false,  // immediate
+								payloadMsg)
+	if err != nil {
+		childLogger.Error().Err(err).Msg("error publish message") 
+		return err
+	}
+
+	childLogger.Debug().Str("msg :", string(body)).Msg("Success Publish a message (ProducerQueue v 1.3)")
 
 	return nil	
 }
@@ -169,7 +248,7 @@ func (p *ProducerService) ProducerExchange(i int) error {
 		return err
 	}
 
-	childLogger.Debug().Str("msg :", string(body)).Msg("Success Publish a message (ProducerExchange)")
+	childLogger.Debug().Str("msg :", string(body)).Msg("Success Publish a message (ProducerExchange v.1.3)")
 
 	return nil	
 }
